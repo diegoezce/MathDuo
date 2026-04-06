@@ -1,0 +1,723 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: MathDuo - Gamified Math Learning API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: users
+    description: User profile and progress
+  - name: lessons
+    description: Lesson content and exercises
+  - name: progress
+    description: User progress tracking
+  - name: gamification
+    description: XP, streaks, and achievements
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: registerUser
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: loginUser
+      tags: [auth]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logoutUser
+      tags: [auth]
+      summary: Logout user
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users/{userId}:
+    get:
+      operationId: getUser
+      tags: [users]
+      summary: Get user profile
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/{userId}/stats:
+    get:
+      operationId: getUserStats
+      tags: [users]
+      summary: Get user statistics summary
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserStats"
+
+  /lessons:
+    get:
+      operationId: getLessons
+      tags: [lessons]
+      summary: Get all lessons (skill tree nodes)
+      responses:
+        "200":
+          description: List of lessons
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Lesson"
+
+  /lessons/{lessonId}:
+    get:
+      operationId: getLesson
+      tags: [lessons]
+      summary: Get a specific lesson with its exercises
+      parameters:
+        - name: lessonId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Lesson details with exercises
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LessonWithExercises"
+
+  /lessons/{lessonId}/start:
+    post:
+      operationId: startLesson
+      tags: [lessons]
+      summary: Start a lesson session
+      parameters:
+        - name: lessonId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Lesson session started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LessonSession"
+
+  /sessions/{sessionId}/answer:
+    post:
+      operationId: submitAnswer
+      tags: [lessons]
+      summary: Submit an answer for an exercise
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnswerBody"
+      responses:
+        "200":
+          description: Answer feedback
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnswerFeedback"
+
+  /sessions/{sessionId}/complete:
+    post:
+      operationId: completeLesson
+      tags: [lessons]
+      summary: Complete a lesson session and award XP
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteLessonBody"
+      responses:
+        "200":
+          description: Lesson completion result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LessonResult"
+
+  /progress:
+    get:
+      operationId: getUserProgress
+      tags: [progress]
+      summary: Get current user's learning path progress
+      responses:
+        "200":
+          description: User progress on all lessons
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserProgress"
+
+  /progress/streak:
+    get:
+      operationId: getStreak
+      tags: [progress]
+      summary: Get user streak info
+      responses:
+        "200":
+          description: Streak info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StreakInfo"
+
+  /gamification/leaderboard:
+    get:
+      operationId: getLeaderboard
+      tags: [gamification]
+      summary: Get top users by XP
+      responses:
+        "200":
+          description: Leaderboard
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LeaderboardEntry"
+
+  /gamification/achievements:
+    get:
+      operationId: getAchievements
+      tags: [gamification]
+      summary: Get user achievements
+      responses:
+        "200":
+          description: List of achievements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Achievement"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+
+    RegisterBody:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        displayName:
+          type: string
+      required:
+        - username
+        - email
+        - password
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        displayName:
+          type: string
+        avatarUrl:
+          type: string
+          nullable: true
+        xp:
+          type: integer
+        level:
+          type: integer
+        lives:
+          type: integer
+        streakDays:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - username
+        - email
+        - xp
+        - level
+        - lives
+        - streakDays
+        - createdAt
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        token:
+          type: string
+      required:
+        - user
+        - token
+
+    UserStats:
+      type: object
+      properties:
+        totalXp:
+          type: integer
+        level:
+          type: integer
+        streakDays:
+          type: integer
+        lessonsCompleted:
+          type: integer
+        accuracy:
+          type: number
+        totalAnswers:
+          type: integer
+        correctAnswers:
+          type: integer
+        lives:
+          type: integer
+        maxStreak:
+          type: integer
+      required:
+        - totalXp
+        - level
+        - streakDays
+        - lessonsCompleted
+        - accuracy
+        - totalAnswers
+        - correctAnswers
+        - lives
+        - maxStreak
+
+    Lesson:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum: [addition, subtraction, multiplication, division, fractions, decimals, algebra, geometry]
+        difficulty:
+          type: integer
+          minimum: 1
+          maximum: 5
+        xpReward:
+          type: integer
+        orderIndex:
+          type: integer
+        requiredLessonIds:
+          type: array
+          items:
+            type: integer
+        iconEmoji:
+          type: string
+        color:
+          type: string
+      required:
+        - id
+        - title
+        - description
+        - category
+        - difficulty
+        - xpReward
+        - orderIndex
+        - requiredLessonIds
+        - iconEmoji
+        - color
+
+    Exercise:
+      type: object
+      properties:
+        id:
+          type: integer
+        lessonId:
+          type: integer
+        type:
+          type: string
+          enum: [multiple_choice, fill_blank, drag_drop, word_problem]
+        question:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+          nullable: true
+        correctAnswer:
+          type: string
+        hint:
+          type: string
+          nullable: true
+        orderIndex:
+          type: integer
+      required:
+        - id
+        - lessonId
+        - type
+        - question
+        - correctAnswer
+        - orderIndex
+
+    LessonWithExercises:
+      allOf:
+        - $ref: "#/components/schemas/Lesson"
+        - type: object
+          properties:
+            exercises:
+              type: array
+              items:
+                $ref: "#/components/schemas/Exercise"
+          required:
+            - exercises
+
+    LessonSession:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        lessonId:
+          type: integer
+        exercises:
+          type: array
+          items:
+            $ref: "#/components/schemas/Exercise"
+        totalExercises:
+          type: integer
+        startedAt:
+          type: string
+          format: date-time
+      required:
+        - sessionId
+        - lessonId
+        - exercises
+        - totalExercises
+        - startedAt
+
+    AnswerBody:
+      type: object
+      properties:
+        exerciseId:
+          type: integer
+        answer:
+          type: string
+      required:
+        - exerciseId
+        - answer
+
+    AnswerFeedback:
+      type: object
+      properties:
+        correct:
+          type: boolean
+        correctAnswer:
+          type: string
+        explanation:
+          type: string
+          nullable: true
+        xpEarned:
+          type: integer
+      required:
+        - correct
+        - correctAnswer
+        - xpEarned
+
+    CompleteLessonBody:
+      type: object
+      properties:
+        correctAnswers:
+          type: integer
+        totalQuestions:
+          type: integer
+        timeSpentSeconds:
+          type: integer
+      required:
+        - correctAnswers
+        - totalQuestions
+        - timeSpentSeconds
+
+    LessonResult:
+      type: object
+      properties:
+        xpEarned:
+          type: integer
+        newLevel:
+          type: integer
+          nullable: true
+        streakUpdated:
+          type: boolean
+        newStreak:
+          type: integer
+        accuracy:
+          type: number
+        lessonUnlocked:
+          type: array
+          items:
+            type: integer
+        perfectLesson:
+          type: boolean
+        totalXp:
+          type: integer
+      required:
+        - xpEarned
+        - streakUpdated
+        - newStreak
+        - accuracy
+        - lessonUnlocked
+        - perfectLesson
+        - totalXp
+
+    UserProgress:
+      type: object
+      properties:
+        lessonId:
+          type: integer
+        status:
+          type: string
+          enum: [locked, available, in_progress, completed, mastered]
+        bestAccuracy:
+          type: number
+          nullable: true
+        timesCompleted:
+          type: integer
+        lastCompletedAt:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - lessonId
+        - status
+        - timesCompleted
+
+    StreakInfo:
+      type: object
+      properties:
+        currentStreak:
+          type: integer
+        maxStreak:
+          type: integer
+        lastActivityDate:
+          type: string
+          format: date
+          nullable: true
+        streakFreezeAvailable:
+          type: boolean
+      required:
+        - currentStreak
+        - maxStreak
+        - streakFreezeAvailable
+
+    LeaderboardEntry:
+      type: object
+      properties:
+        rank:
+          type: integer
+        userId:
+          type: integer
+        username:
+          type: string
+        displayName:
+          type: string
+        xp:
+          type: integer
+        level:
+          type: integer
+        streakDays:
+          type: integer
+      required:
+        - rank
+        - userId
+        - username
+        - xp
+        - level
+        - streakDays
+
+    Achievement:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        iconEmoji:
+          type: string
+        unlocked:
+          type: boolean
+        unlockedAt:
+          type: string
+          format: date-time
+          nullable: true
+        requirement:
+          type: string
+      required:
+        - id
+        - title
+        - description
+        - iconEmoji
+        - unlocked
+        - requirement
