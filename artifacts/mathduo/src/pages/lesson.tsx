@@ -24,11 +24,11 @@ export default function Lesson() {
   const [feedback, setFeedback] = useState<{ correct: boolean; correctAnswer: string; explanation?: string | null } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: user, isLoading: isUserLoading } = useGetMe({ query: { retry: false } });
-  
+  const { data: user, isLoading: isUserLoading } = useGetMe({ query: { retry: false, queryKey: ['/api/auth/me'] } });
+
   const { data: lesson, isLoading: isLessonLoading } = useGetLesson(
     Number(lessonId),
-    { query: { enabled: !!lessonId && !!user } }
+    { query: { enabled: !!lessonId && !!user, queryKey: [`/api/lessons/${lessonId}`] } }
   );
 
   const startMutation = useStartLesson();

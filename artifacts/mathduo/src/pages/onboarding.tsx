@@ -7,7 +7,7 @@ import { Loader2 } from "lucide-react";
 
 export default function Onboarding() {
   const [, setLocation] = useLocation();
-  const { data: user, isLoading } = useGetMe({ query: { retry: false } });
+  const { data: user, isLoading } = useGetMe({ query: { retry: false, queryKey: ['/api/auth/me'] } });
 
   useEffect(() => {
     if (user && !isLoading) {

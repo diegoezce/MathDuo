@@ -13,18 +13,18 @@ import {
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
-  const { data: user, isLoading: isUserLoading } = useGetMe({ query: { retry: false } });
-  
+  const { data: user, isLoading: isUserLoading } = useGetMe({ query: { retry: false, queryKey: ['/api/auth/me'] } });
+
   const { data: lessons, isLoading: isLessonsLoading } = useGetLessons({
-    query: { enabled: !!user }
+    query: { enabled: !!user, queryKey: ['/api/lessons'] }
   });
-  
+
   const { data: progress, isLoading: isProgressLoading } = useGetUserProgress({
-    query: { enabled: !!user }
+    query: { enabled: !!user, queryKey: ['/api/progress'] }
   });
-  
+
   const { data: streak, isLoading: isStreakLoading } = useGetStreak({
-    query: { enabled: !!user }
+    query: { enabled: !!user, queryKey: ['/api/progress/streak'] }
   });
 
   if (isUserLoading) {

@@ -32,7 +32,7 @@ export default function Register() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { data: user, isLoading: isUserLoading } = useGetMe({ query: { retry: false } });
+  const { data: user, isLoading: isUserLoading } = useGetMe({ query: { retry: false, queryKey: ['/api/auth/me'] } });
 
   const registerMutation = useRegisterUser();
 

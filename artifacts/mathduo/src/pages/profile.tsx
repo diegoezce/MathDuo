@@ -11,15 +11,15 @@ import { cn } from "@/lib/utils";
 export default function Profile() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
-  const { data: user, isLoading: isUserLoading } = useGetMe({ query: { retry: false } });
-  
+  const { data: user, isLoading: isUserLoading } = useGetMe({ query: { retry: false, queryKey: ['/api/auth/me'] } });
+
   const { data: stats, isLoading: isStatsLoading } = useGetUserStats(
     user?.id as number,
-    { query: { enabled: !!user?.id } }
+    { query: { enabled: !!user?.id, queryKey: [`/api/users/${user?.id}/stats`] } }
   );
 
   const { data: achievements, isLoading: isAchievementsLoading } = useGetAchievements({
-    query: { enabled: !!user?.id }
+    query: { enabled: !!user?.id, queryKey: ['/api/gamification/achievements'] }
   });
 
   const logoutMutation = useLogoutUser();

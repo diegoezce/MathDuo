@@ -8,10 +8,10 @@ import { cn } from "@/lib/utils";
 
 export default function Leaderboard() {
   const [, setLocation] = useLocation();
-  const { data: user, isLoading: isUserLoading } = useGetMe({ query: { retry: false } });
-  
+  const { data: user, isLoading: isUserLoading } = useGetMe({ query: { retry: false, queryKey: ['/api/auth/me'] } });
+
   const { data: leaderboard, isLoading: isLeaderboardLoading } = useGetLeaderboard({
-    query: { enabled: !!user }
+    query: { enabled: !!user, queryKey: ['/api/gamification/leaderboard'] }
   });
 
   useEffect(() => {
